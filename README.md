@@ -13,6 +13,8 @@ Validate and verify the Pipeline output and Groundtruths output
 - `pip freeze > requirements.txt`
 
 ## Steps to generate reports
+- checkout to new branch and use it(just to avoid conflicts)
+-`git checkout -b <branchname>`
 - copy the testdata i.e groundtruth and pipeline files in TestData, and update the testpath in config.py file
 - output >> Pipeline output file
 - GTPath >> Groundtruth File 
