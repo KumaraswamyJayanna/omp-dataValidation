@@ -9,6 +9,6 @@ validationdata1 = "ValidationData/pipelineValidationData_result_Treasury&Banki20
 validationdata2 = "ValidationData/groundtruthValidationData_result_Treasury&Banki2025-02-04.xlsx"
 
 
-OUTPUTFILE = REPORTPATH+"/final_report_output_TB.xlsx"
+OUTPUTFILE = VALIDATIONREPORT+"/final_report_output_TB.xlsx"
 # Threshold for file-level accuracy (adjust as needed)
 ACCURACYTHRESHOLD = 90
