@@ -154,7 +154,4 @@ class DataCleaning(ExcelCompare):
 
 
 res = DataCleaning(OUTPUTPATH, GTPATH)
-# out = ExcelCompare(OUTPUTPATH, GTPATH)
-# extra_columns = out.check_column_difference()
-# print(f"Extra columns : {extra_columns}")
-# structured_baseline_df, structured_compare_df = out.filter_columns()
+
