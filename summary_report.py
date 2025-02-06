@@ -218,8 +218,8 @@ measures = list(df_result.columns)[2:]
 
 
 df_result_summary = pd.DataFrame(
-    columns=["Iteration Number", "Issue Type", "Issue Level", "Accuracy Measure", "Overall Accuracy Percentage",
-             "Number of Files affected", "Percentage of Incorrect"])
+    columns=["Iteration Number", "Issue Type", "Issue Level", "Overall Accuracy Percentage",
+             "Number of Files affected", "Percentage_of_Missing", "Percentage of Incorrect"])
 
 mismatches = res.find_mismatches()
 mismatches["Duplicates Extraction"] = true_duplicates if true_duplicates >= accuracy_threshold else 0
@@ -256,4 +256,3 @@ with pd.ExcelWriter(output_file) as writer:
     df_result_summary.to_excel(writer, sheet_name='Category_Issue_Summary')
     df_result.to_excel(writer, sheet_name='File Level Accuracy', index=False)
     print(f"Generated reports are copied here: {os.path.abspath(output_file)}")
-
