@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pandas as pd
 import openpyxl
 import os
@@ -14,7 +16,8 @@ class ExcelReport:
         self.df1 = self.df1.astype(str)
         self.df2 = self.df2.astype(str)
         self.varvalue = os.path.splitext(os.path.basename(self.file1_path))[0]
-        self.report_path = REPORTPATH +f"/highlighted_report_{self.varvalue}.xlsx"
+        self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.report_path = REPORTPATH +f"/highlighted_report_{self.varvalue + self.timestamp}.xlsx"
         self.sheets_name = ['Pipeline', 'MissingRows', "ExtraRowsinGT"]
 
     def create_report_sheet(self):
@@ -61,7 +64,7 @@ class ExcelReport:
 
         for i in range(len(self.df1)):
             pipeline_row_data = self.df1.iloc[i].tolist()
-            key = pipeline_row_data[0].lower()
+            key = pipeline_row_data[0]
             gt_row_dataset_for_key = self.df2[self.df2['Pseudo_column'] == str(key)].values.tolist()
 
             if not gt_row_dataset_for_key:
@@ -88,13 +91,13 @@ class ExcelReport:
                     self.df2.drop(gt_data_index_values, inplace=True)
             else:
                 for data in gt_row_dataset_for_key:
-                    # print("Verifying for index match with groundtruth data")
+                    print("Verifying for index match with groundtruth data")
                     differences = [index + 1 for index, (a, b) in enumerate(zip(pipeline_row_data, data)) if a != b]
                     data_differences.append(differences)
 
-                # print(f"Value Differences found for key {data_differences}")
+                print(f"Value Differences found for key {data_differences}")
                 if not data_differences:
-                    # print("Exact matches found")
+                    print("Exact matches found")
                     self.append_data_to_report_highlight(sheetname="Pipeline", data=pipeline_row_data, columns_to_highlight=None)
                     self.df2.drop(gt_data_index_values, inplace=True)
                 else:
@@ -110,4 +113,3 @@ class ExcelReport:
 
         print(f"Report Generated Here: {os.path.relpath(self.report_path)}")
         print("Execution Done")
-

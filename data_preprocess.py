@@ -1,7 +1,7 @@
-from config import OUTPUTPATH, GTPATH, OUTPUTFILE, REPORTPATH, VALIDATIONREPORT
+from config import OUTPUTPATH, GTPATH, OUTPUTFILE, KEYS, VALIDATIONREPORT, COLUMN_VALUE_TO_SORTBY
 import pandas as pd
 from openpyxl import load_workbook
-import datetime
+from datetime import datetime
 import re
 import os
 
@@ -16,7 +16,8 @@ class ExcelCompare:
         self.missing_rows_df = pd.DataFrame()
         self.result_df = self.baseline_df.copy()
         self.mismatched_cells = {}
-        self.varvalue = baseline_file.split("/")[-1].split(".")[0][0:14] + str(datetime.date.today())
+        self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.varvalue = baseline_file.split("/")[-1].split(".")[0][0:14] + self.timestamp
         self.reportname = VALIDATIONREPORT + "_result_" + self.varvalue + ".xlsx"
 
     def check_column_difference(self):
@@ -70,7 +71,7 @@ class DataCleaning(ExcelCompare):
         return structured_baseline_df, structured_compare_df
 
     def sort_dataframe_alphabetically(self):
-        column_name = "Product_Service_SKU_Name_Normalized"
+        column_name = COLUMN_VALUE_TO_SORTBY
         clean_baseline_df, clean_compare_df = self.remove_special_characters()
         sorted_baseline_df = clean_baseline_df.sort_values(by=column_name, ascending=True)
         sorted_compare_df = clean_compare_df.sort_values(by=column_name, ascending=True)
@@ -99,7 +100,7 @@ class DataCleaning(ExcelCompare):
             mismatches[column] = 100 - float(true_value)
         return mismatches
     def create_excel_with_dataframes(self):
-        filename = VALIDATIONREPORT +"/Output_for_manual_comparison.xlsx"
+        filename = VALIDATIONREPORT +"/Output_for_manual_verify" + self.timestamp +".xlsx"
         if not filename.endswith('.xlsx'):
             raise ValueError("Invalid file extension. Please use '.xlsx' extension for the filename.")
 
@@ -116,13 +117,17 @@ class DataCleaning(ExcelCompare):
     @staticmethod
     def generate_key_for_pseudo_column(df):
         new_col_name = "Pseudo_column"
-        keys = ["Product_Service_SKU_Name_Normalized", "Product_Service_SKU_Name_Original", "File_Name"]
-        columnkeys = df[keys[0]].astype(str).replace(" ", "") + df[keys[1]].astype(str).replace(" ", "") + df[keys[2]].astype(str).replace(" ", "")
+        keys = KEYS
+        columnkeys = ""
+        for x in range(len(keys)):
+            columnkeys += df[keys[x]].astype(str).replace(" ", "")
         df[new_col_name] = columnkeys
-        df[new_col_name] = df[new_col_name].str.lower()
+        df[new_col_name] = df[new_col_name].str.lower().apply(lambda x: re.sub(r'[^A-Za-z0-9]+', '', x))
         df.insert(0, new_col_name, df.pop(new_col_name))
 
+
         return df
+
 
     def compare_and_highlight_excel(self):
         # Read the Excel file and sheets
