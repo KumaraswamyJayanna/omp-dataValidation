@@ -95,16 +95,20 @@ class ExcelReport:
                     differences = [index + 1 for index, (a, b) in enumerate(zip(pipeline_row_data, data)) if a != b]
                     data_differences.append(differences)
 
-                print(f"Value Differences found for key {data_differences}")
+                # print(f"Value Differences found for key {data_differences}")
                 if not data_differences:
                     print("Exact matches found")
                     self.append_data_to_report_highlight(sheetname="Pipeline", data=pipeline_row_data, columns_to_highlight=None)
                     self.df2.drop(gt_data_index_values, inplace=True)
                 else:
+                    original_index = dict(zip(gt_data_index_values, data_differences))
                     find_minimum_difference = min(data_differences, key=len)
+                    for index, difference in original_index.items():
+                        if difference == find_minimum_difference:
+                            val = index
                     min_length_index = data_differences.index(find_minimum_difference)
                     self.append_data_to_report_highlight(sheetname="Pipeline", data=pipeline_row_data, columns_to_highlight=data_differences[min_length_index])
-                    self.df2.drop(gt_data_index_values, inplace=True)
+                    self.df2.drop(val, inplace=True)
 
         gt_data_set = self.df2.values.tolist()
         print(f"Left GT Data is of length :: {len(gt_data_set)}")
