@@ -12,15 +12,14 @@ import pandas as pd
 from config import ACCURACYTHRESHOLD, GTPATH, OUTPUTPATH, REPORTPATH
 
 
-report = 'Reports\highlighted_report_pipelineValidationData_result_temp20250219_221316.xlsx'
+report = 'Reports\highlighted_report_pipelineValidationData_result_temp20250221_131657.xlsx'
 
 
 class File_Report:
 
-    def __init__(self, reportpath, pipelinefile) -> None:
+    def __init__(self, reportpath) -> None:
         self.reportpath = reportpath
-        self.pipelinefile = pipelinefile
-        self.df_report = pd.read_excel(self.reportpath)
+        self.df_report = pd.read_excel(self.reportpath, sheet_name="Pipeline_Comparission_report")
         self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         self.summaryreport = f'summary_{self.timestamp}.xlsx'
         self.counts = {}
@@ -33,7 +32,7 @@ class File_Report:
 
     def count_column_highlights_ofreport(self, ):
         wb = openpyxl.load_workbook(self.reportpath)
-        sheet =wb["Pipeline"]
+        sheet =wb["Pipeline_Comparission_report"]
         highlighted_counts={}
 
         for col in sheet.columns:
@@ -72,10 +71,21 @@ class File_Report:
     def get_columns(self):
         return self.df_report.columns
 
+    def get_length_by_filename(self):
+        data_counts_by_filename = {}
+        columnname= "File_Name"
+        filenames= self.get_file_names()
+        for file in filenames:
+            filtered_df = self.df_report[self.df_report[columnname] == file]
+            count = filtered_df.shape[0]
+            data_counts_by_filename[file]=count
+        return data_counts_by_filename
+
+
     def filter_by_category(self, column_name, filter_value, output_file_path):
 
         wb = openpyxl.load_workbook(self.reportpath)
-        sheet =wb["Pipeline"]
+        sheet =wb["Pipeline_Comparission_report"]
         filtered_data =[]
 
         # Get the column index based on the header
@@ -108,22 +118,29 @@ class File_Report:
                 for col_idx, col_cell in enumerate(row, 1):
                     new_cell = new_sheet.cell(row=filtered_row_count + 1, column=col_idx, value=col_cell.value)
                     # Preserve highlighting (if any)
-                    if col_cell.fill and col_cell.fill.start_color.index != '00000000':
+                    if col_cell.fill and col_cell.fill.start_color.index != '00000000' or col_cell.fill != "FFCCCB":
                         new_cell.fill = PatternFill(start_color=col_cell.fill.start_color.index,
                                                 end_color=col_cell.fill.end_color.index,
                                                 fill_type=col_cell.fill.fill_type
                                                 )
         # Save the new workbook with filtered data
+        row_counts_by_file={}
         if filtered_row_count > 0:
             new_wb.save(output_file_path)
             print(f"Filtered data saved to {output_file_path}")
+            #-------------------------------------------------------------------
+            df_file_row_count = pd.read_excel(output_file_path)
+            filename = output_file_path.split("/")[-1]
+            row_counts_by_file[filename]=len(df_file_row_count)
+
         else:
             print(f"No rows found with '{column_name}' equal to '{filter_value}'.")
+
         temp_file_path = os.path.abspath(output_file_path)
-        return filtered_data, temp_file_path
+        return filtered_data, temp_file_path, row_counts_by_file
 
     def get_count_totaldata(self):
-        df_pipeline = pd.read_excel(self.pipelinefile)
+        df_pipeline = pd.read_excel(self.reportpath)
         return len(df_pipeline)
 
     def count_incorrects(self, file_report:pd.DataFrame):
@@ -132,34 +149,42 @@ class File_Report:
         return column_sum
 
     def find_by_files(self):
+
         filenames= self.get_file_names()
+        total_file_name = len(filenames)
         if not os.path.exists("temp"):
             os.makedirs("temp")
-
         for file in filenames:
+
             outpath = f'temp/{file}_temp.xlsx'
-            _, filtereddatapath = report.filter_by_category("File_Name", file, outpath)
+            _, filtereddatapath, data_length_by_file = report.filter_by_category("File_Name", file, outpath)
             res = report.count_column_highlights_byfile(filtereddatapath)
+
             self.counts[file]=res
         df_result=pd.DataFrame(self.counts).T
-        return df_result
+        return total_file_name, df_result, data_length_by_file
 
+    def missing_rows_data(self):
+        df_missingrows=pd.read_excel(self.reportpath, sheet_name="MissingRows")
+        total_missing_rows = len(df_missingrows)-1
+        return df_missingrows
 
 if __name__=="__main__":
 # def analyze_summary_report():
 
     # Generate a file level report
-    report = File_Report(report, OUTPUTPATH)
-    df_results = report.find_by_files()
-
-
+    report = File_Report(report)
+    filecounts, df_results, data_count_by_files = report.find_by_files()
+    data_count_by_files = report.get_length_by_filename()
+    print(data_count_by_files)
     # Generate category level report
     totalrows = report.get_count_totaldata()
+    print(totalrows)
     out = report.count_incorrects(df_results)
     accuracy ={}
 
     for field, count in out.items():
-        accuracy[field]=round(100-((count/totalrows)*100),2)
+        accuracy[field]=round((((totalrows-count)/totalrows)*100),2)
 
     # Check number of files affected
     files_affected = df_results != 0
@@ -181,12 +206,22 @@ if __name__=="__main__":
         df_category.loc[measures.index(measure)+1] = category.values()
 
 
+    # df_results[0, 'Total_Rows'] = df_results[0, 'FileName'].map(data_count_by_files)
+    df_results.drop(columns=['Pseudo_column'], inplace=True)
+    df_results["TotalRows"]=df_results.index.map(data_count_by_files)
     # df_result=pd.DataFrame(counts).T
-    output_file = REPORTPATH +"/summary_report.xlsx"
+    output_file = REPORTPATH +"/summary_reportres5.xlsx"
     with pd.ExcelWriter(output_file) as writer:
         df_category.to_excel(writer, sheet_name="Category Level", index=1)
         df_results.to_excel(writer, sheet_name='File Level Accuracy', index=1)
         print(f"Summary report Generated here : {os.path.abspath(output_file)}")
         shutil.rmtree("temp")
 
-# analyze_summary_report()
+
+# print(df_results.head(5))
+print(df_results.index)
+# print(data_count_by_files)
+# # analyze_summary_report()
+
+# df_results.loc[0,"TotalRows"]=data_count_by_files.get(df_results[0, "TotalRows"], None)
+print(df_results.head(5))

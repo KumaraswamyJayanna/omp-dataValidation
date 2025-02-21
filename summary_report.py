@@ -135,7 +135,7 @@ for i in range(len(cols)):
     mappings = mismatched.groupby('File_Name_x').size().to_dict()
 
     # Map mismatches to the result DataFrame
-    df_result['File_Name'] = files
+    # df_result['File_Name'] = files
     df_result[cols[i]] = df_result['File_Name'].map(mappings).fillna(0).astype(int)
 
 # Calculate overall accuracy and affected files for each measure

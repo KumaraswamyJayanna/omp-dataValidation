@@ -17,7 +17,8 @@ class ExcelCompare:
         self.result_df = self.baseline_df.copy()
         self.mismatched_cells = {}
         self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        self.varvalue = baseline_file.split("/")[-1].split(".")[0][0:14] + self.timestamp
+        # self.varvalue = baseline_file.split("/")[-1].split(".")[0][0:14] + self.timestamp
+        self.varvalue = "temp"
         self.reportname = VALIDATIONREPORT + "_result_" + self.varvalue + ".xlsx"
 
     def check_column_difference(self):
@@ -26,6 +27,7 @@ class ExcelCompare:
 
     def filter_columns(self):
         invalid_columns = self.check_column_difference()
+        print(invalid_columns)
         invalid_columns.extend(["System_DateTime", "Key"])
         self.compare_df = self.compare_df.reindex(columns=self.baseline_df.columns)
 
@@ -37,7 +39,7 @@ class ExcelCompare:
             return filtered_baseline_df, filtered_compare_df
         except KeyError:
             print("Error: One or more columns not found in dataFrame")
-            return self.baseline_df
+            # return self.baseline_df
 
 
 class DataCleaning(ExcelCompare):
@@ -77,14 +79,14 @@ class DataCleaning(ExcelCompare):
         sorted_compare_df = clean_compare_df.sort_values(by=column_name, ascending=True)
         return sorted_baseline_df, sorted_compare_df
 
-    def check_row_wise_in_dataframe(self):
-        df1, df2 = self.sort_dataframe_alphabetically()
-        is_present = pd.Series([False] * len(df1), index=df1.index)
+    # def check_row_wise_in_dataframe(self):
+    #     df1, df2 = self.sort_dataframe_alphabetically(),
+    #     is_present = pd.Series([False] * len(df1), index=df1.index)
 
-        for i, row in df1.iterrows():
-            if ((df2 == row).all(axis=1)).any():
-                is_present[i] = True
-        return is_present
+    #     for i, row in df1.iterrows():
+    #         if ((df2 == row).all(axis=1)).any():
+    #             is_present[i] = True
+    #     return is_present
 
     def find_mismatches(self):
         df1, df2 = self.sort_dataframe_alphabetically()
@@ -99,6 +101,8 @@ class DataCleaning(ExcelCompare):
             true_value = round((true_mismatches / (true_mismatches + false_mismatches)) * 100, 2)
             mismatches[column] = 100 - float(true_value)
         return mismatches
+
+
     def create_excel_with_dataframes(self):
         filename = VALIDATIONREPORT +"/Output_for_manual_verify" + self.timestamp +".xlsx"
         if not filename.endswith('.xlsx'):
@@ -112,7 +116,7 @@ class DataCleaning(ExcelCompare):
         path = os.path.relpath(filename)
         print(f'Excel file has been created for manual validation: {path}')
 
-        return dataframes, path
+        return path
 
     @staticmethod
     def generate_key_for_pseudo_column(df):
@@ -120,28 +124,34 @@ class DataCleaning(ExcelCompare):
         keys = KEYS
         columnkeys = ""
         for x in range(len(keys)):
+            print(f"type of key {x} is {type(x)}")
+            print(type(keys[x]))
             columnkeys += df[keys[x]].astype(str).replace(" ", "")
+
+            print(type(columnkeys))
+            print(f"{columnkeys} type is {type(columnkeys)}")
         df[new_col_name] = columnkeys
+        print(columnkeys)
+        print(type(columnkeys))
         df[new_col_name] = df[new_col_name].str.lower().apply(lambda x: re.sub(r'[^A-Za-z0-9]+', '', x))
         df.insert(0, new_col_name, df.pop(new_col_name))
-
-
         return df
 
 
     def compare_and_highlight_excel(self):
         # Read the Excel file and sheets
-        dataframes, path = self.create_excel_with_dataframes()
+        path = self.create_excel_with_dataframes()
 
         filepath = path
+        print(path)
         sheetname = ["pipeline_output", "GroundTruth_output"]
 
         df1 = pd.read_excel(filepath, sheet_name=sheetname[0])
         df2 = pd.read_excel(filepath, sheet_name=sheetname[1])
         df1 = self.generate_key_for_pseudo_column(df1)
-        df1.fillna("NULL", inplace=True)
+        # df1.fillna("NULL", inplace=True)
         df2 = self.generate_key_for_pseudo_column(df2)
-        df2.fillna("NULL", inplace=True)
+        # df2.fillna("NULL", inplace=True)
         pipeline_data_processpath = VALIDATIONREPORT+"/pipeline"+self.reportname
         gt_data_processpath = VALIDATIONREPORT+"/groundtruth"+self.reportname
         df1.to_excel(pipeline_data_processpath, index=False, sheet_name="pipeline")
@@ -153,8 +163,10 @@ class DataCleaning(ExcelCompare):
         # # Save the workbook with highlighted differences
         workbook.save(OUTPUTFILE)
         outputfilepath = os.path.relpath(OUTPUTFILE)
+        print(os.path.relpath(pipeline_data_processpath))
+        print(os.path.relpath(gt_data_processpath))
         print(f'Finalized output Excels file has created here: {outputfilepath}')
-        print("Execution Done")
+        # print("Execution Done")
         return outputfilepath, pipeline_data_processpath, gt_data_processpath
 
 
