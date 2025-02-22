@@ -1,5 +1,6 @@
 from data_preprocess import DataCleaning
 from generatereport import ExcelReport
+from summary_levelreport import File_Report
 from config import OUTPUTPATH, GTPATH
 import pandas as pd
 import os
@@ -16,4 +17,11 @@ if __name__ == "__main__":
     print("Get the mismatches column wise")
     out, preprocess_pipeline, preprocess_gt = data_preprocess.compare_and_highlight_excel()
     report_generator = ExcelReport(file1_path=preprocess_pipeline, file2_path=preprocess_gt)
-    report_generator.generate_report()
+    data_compared_report = report_generator.generate_report()
+    print("Generating the Summary report")
+    summary_report = File_Report(data_compared_report)
+    summary_report.generate_report()
+    print("Done")
+
+
+
