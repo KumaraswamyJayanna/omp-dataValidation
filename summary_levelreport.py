@@ -1,18 +1,14 @@
 """To generate a category level and file level summary reports"""
-import os.path
 import os
+import os.path
 import shutil
-import re
-import openpyxl
-from openpyxl.styles import PatternFill
 from datetime import datetime
 
+import openpyxl
 import pandas as pd
+from openpyxl.styles import PatternFill
 
-from config import ACCURACYTHRESHOLD, GTPATH, OUTPUTPATH, REPORTPATH
-
-
-report = 'Reports\highlighted_report_pipelineValidationData_result_temp20250221_131657.xlsx'
+from config import REPORTPATH
 
 
 class File_Report:
@@ -26,17 +22,19 @@ class File_Report:
 
 
     def get_file_names(self):
+        '''get the filenames from the report'''
         filenames = self.df_report['File_Name'].unique()
         return filenames
 
 
-    def count_column_highlights_ofreport(self, ):
+    def count_column_highlights_ofreport(self):
+        # count the yellow highlights in the report
         wb = openpyxl.load_workbook(self.reportpath)
         sheet =wb["Pipeline_Comparission_report"]
         highlighted_counts={}
 
         for col in sheet.columns:
-            col_name = col[0].value  # Get column letter (e.g., 'A', 'B', ...)
+            col_name = col[0].value  # Get column letter
             highlighted_count = 0
 
             # Check each cell in the column
@@ -50,12 +48,13 @@ class File_Report:
         return highlighted_counts
 
     def count_column_highlights_byfile(self, data_file):
+        # get the columns count based on the filename or we may change to any columns
         wb = openpyxl.load_workbook(data_file)
         sheet =wb["Sheet"]
         highlighted_counts={}
 
         for col in sheet.columns:
-            col_name = col[0].value  # Get column letter (e.g., 'A', 'B', ...)
+            col_name = col[0].value  # Get column letter
             highlighted_count = 0
 
             # Check each cell in the column
@@ -69,9 +68,11 @@ class File_Report:
         return highlighted_counts
 
     def get_columns(self):
+        #get the columns of the report
         return self.df_report.columns
 
     def get_length_by_filename(self):
+        # get the count of the data in each files
         data_counts_by_filename = {}
         columnname= "File_Name"
         filenames= self.get_file_names()
@@ -83,7 +84,7 @@ class File_Report:
 
 
     def filter_by_category(self, column_name, filter_value, output_file_path):
-
+        # filter the values by category
         wb = openpyxl.load_workbook(self.reportpath)
         sheet =wb["Pipeline_Comparission_report"]
         filtered_data =[]
@@ -140,6 +141,7 @@ class File_Report:
         return filtered_data, temp_file_path, row_counts_by_file
 
     def get_count_totaldata(self):
+        #Get the total data of the report
         df_pipeline = pd.read_excel(self.reportpath)
         return len(df_pipeline)
 
@@ -149,7 +151,7 @@ class File_Report:
         return column_sum
 
     def find_by_files(self):
-
+        # verifying the report by filename for filelevel accuracy
         filenames= self.get_file_names()
         total_file_name = len(filenames)
         if not os.path.exists("temp"):
@@ -157,71 +159,109 @@ class File_Report:
         for file in filenames:
 
             outpath = f'temp/{file}_temp.xlsx'
-            _, filtereddatapath, data_length_by_file = report.filter_by_category("File_Name", file, outpath)
-            res = report.count_column_highlights_byfile(filtereddatapath)
+            _, filtereddatapath, data_length_by_file = self.filter_by_category("File_Name", file, outpath)
+            res = self.count_column_highlights_byfile(filtereddatapath)
 
             self.counts[file]=res
         df_result=pd.DataFrame(self.counts).T
         return total_file_name, df_result, data_length_by_file
 
-    def missing_rows_data(self):
-        df_missingrows=pd.read_excel(self.reportpath, sheet_name="MissingRows")
-        total_missing_rows = len(df_missingrows)-1
-        return df_missingrows
+    def in_pipeline_not_in_gt(self):
+        # Get the length of the missing rows in the report
+        df_missingrows=pd.read_excel(self.reportpath, sheet_name="InPipelineNotIn_GT")
+        total_missing_rows = len(df_missingrows)
+        return total_missing_rows
 
-if __name__=="__main__":
-# def analyze_summary_report():
+    def extra_rows_in_gt(self):
+        df_extragtrows=pd.read_excel(self.reportpath, sheet_name="ExtraRowsinGT")
+        df_extragtrows = len(df_extragtrows)
+        return df_extragtrows
 
-    # Generate a file level report
-    report = File_Report(report)
-    filecounts, df_results, data_count_by_files = report.find_by_files()
-    data_count_by_files = report.get_length_by_filename()
-    print(data_count_by_files)
-    # Generate category level report
-    totalrows = report.get_count_totaldata()
-    print(totalrows)
-    out = report.count_incorrects(df_results)
-    accuracy ={}
+    def generate_report(self):
 
-    for field, count in out.items():
-        accuracy[field]=round((((totalrows-count)/totalrows)*100),2)
+        # def analyze_summary_report():
 
-    # Check number of files affected
-    files_affected = df_results != 0
-    files_affected_counts = files_affected.sum()
+        # Generate a file level and Category level report
+        # report = File_Report(report)
+        filecounts, df_results, data_count_by_files = self.find_by_files()
+        data_count_by_files = self.get_length_by_filename()
 
-    df_category = pd.DataFrame(
-        columns=["Iteration Number", "Issue Type", "Issue Level", "Overall Accuracy Percentage",
-                "Number of Files affected"])
-    measures = list(df_results.columns)
-    for measure in measures:
-        category={
-            "Iteration Number": "0.0",
-            "Issue Type" : measure,
-            "Issue Level" : "Field",
-            "Overall Accuracy Percentage": float(accuracy[measure]),
-            "Number of Files affected": float(files_affected_counts[measure])
-        }
+        # get the total rows of pipeline sheet
+        totalrows = self.get_count_totaldata()
+        out = self.count_incorrects(df_results)
+        accuracy ={}
 
-        df_category.loc[measures.index(measure)+1] = category.values()
+        #get total rows of InPipelineNotIn_GT sheet and ExtraRowsinGT sheet
+        missingrows = self.in_pipeline_not_in_gt()
+        extrarowsingt = self.extra_rows_in_gt()
+
+        # calculate the accuracy of fields
+        for field, count in out.items():
+            accuracy[field]=round((((totalrows-count)/totalrows)*100),2)
+
+        # Check number of files affected
+        files_affected = df_results != 0
+        files_affected_counts = files_affected.sum()
+
+        df_category = pd.DataFrame(
+            columns=["Iteration Number", "Issue Type", "Issue Level", "Overall Accuracy Percentage",
+                    "Number of Files affected"])
+        measures = list(df_results.columns)
+        for measure in measures:
+            category={
+                "Iteration Number": "0.0",
+                "Issue Type" : measure,
+                "Issue Level" : "Field",
+                "Overall Accuracy Percentage": float(accuracy[measure]),
+                "Number of Files affected": float(files_affected_counts[measure])
+            }
+
+            df_category.loc[measures.index(measure)+1] = category.values()
 
 
-    # df_results[0, 'Total_Rows'] = df_results[0, 'FileName'].map(data_count_by_files)
-    df_results.drop(columns=['Pseudo_column'], inplace=True)
-    df_results["TotalRows"]=df_results.index.map(data_count_by_files)
-    # df_result=pd.DataFrame(counts).T
-    output_file = REPORTPATH +"/summary_reportres5.xlsx"
-    with pd.ExcelWriter(output_file) as writer:
-        df_category.to_excel(writer, sheet_name="Category Level", index=1)
-        df_results.to_excel(writer, sheet_name='File Level Accuracy', index=1)
-        print(f"Summary report Generated here : {os.path.abspath(output_file)}")
+        # droping the key generated column and adding the extra rows of total rows in file
+        df_results.drop(columns=['Pseudo_column'], inplace=True)
+        df_results["TotalRows"]=df_results.index.map(data_count_by_files)
+        columns = ['TotalRows'] + [col for col in df_results.columns if col != 'TotalRows']
+        df_results = df_results[columns]
+
+        # Writing the report to the excel file
+        output_file = REPORTPATH +"/summary_report_old.xlsx"
+        with pd.ExcelWriter(output_file) as writer:
+            df_category.to_excel(writer, sheet_name="Category Level", index=1)
+            df_results.to_excel(writer, sheet_name='File Level Accuracy', index=1)
+            print(f"Summary report Generated here : {os.path.abspath(output_file)}")
+
+        #wtite the extra data for Data engineers requirement
+        wb = openpyxl.load_workbook(output_file)
+        file_level_accuracy_report = wb['File Level Accuracy']
+
+        # Writing the total rows of the compared report and insights about the report
+        extradata =[[],
+                    ["Total data in the pipeline report", totalrows],
+                    ["Data in pipeline and not in GT", missingrows],
+                    ["Data in Ground Truth not compared with pipeline", extrarowsingt],
+                    [],
+                    ["ABOUT THE REPORT"],
+                    ["Summary reports calculated based only on the highlighted 'Pipeline_Comparission_report' file"],
+                    ["Data Comparision has happned only based on the 'pseudo_key' generated"],
+                    ["Data  from pipeline file which are Unable to compare or in the 'InPipelinenotInGT' sheet"],
+                    ["Data  from Groundtruth file which are Unable to compare with pipeline or in the 'Extrarows in GT' sheet"]]
+
+
+        for row in extradata:
+            file_level_accuracy_report.append(row)
+
+        wb.save(output_file)
+        #cleanup directory
         shutil.rmtree("temp")
+        print(f"Data written successfully to {output_file}")
 
 
-# print(df_results.head(5))
-print(df_results.index)
-# print(data_count_by_files)
-# # analyze_summary_report()
-
-# df_results.loc[0,"TotalRows"]=data_count_by_files.get(df_results[0, "TotalRows"], None)
-print(df_results.head(5))
+# if you want only summary report please uncomment below lines and run this file
+# copy the highlighted report
+report ="Reports/highlighted_report_pipelineValidationData_result_temp20250222_234557.xlsx"
+print("Generating the Summary report")
+summary_report = File_Report(report)
+summary_report.generate_report()
+print("Done")

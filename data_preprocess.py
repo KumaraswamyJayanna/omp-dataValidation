@@ -124,15 +124,11 @@ class DataCleaning(ExcelCompare):
         keys = KEYS
         columnkeys = ""
         for x in range(len(keys)):
-            print(f"type of key {x} is {type(x)}")
-            print(type(keys[x]))
             columnkeys += df[keys[x]].astype(str).replace(" ", "")
-
-            print(type(columnkeys))
-            print(f"{columnkeys} type is {type(columnkeys)}")
+            # debug statements
+            # print(type(columnkeys))
+            # print(f"{columnkeys} type is {type(columnkeys)}")
         df[new_col_name] = columnkeys
-        print(columnkeys)
-        print(type(columnkeys))
         df[new_col_name] = df[new_col_name].str.lower().apply(lambda x: re.sub(r'[^A-Za-z0-9]+', '', x))
         df.insert(0, new_col_name, df.pop(new_col_name))
         return df
@@ -170,5 +166,5 @@ class DataCleaning(ExcelCompare):
         return outputfilepath, pipeline_data_processpath, gt_data_processpath
 
 
-res = DataCleaning(OUTPUTPATH, GTPATH)
+# res = DataCleaning(OUTPUTPATH, GTPATH)
 

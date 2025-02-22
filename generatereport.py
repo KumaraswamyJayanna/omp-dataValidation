@@ -70,7 +70,11 @@ class ExcelReport:
 
             if len(gt_row_dataset_for_key)==0:
                 print(f"DATA NOT FOUND IN GT: No data found in GT for {key}")
-                # self.append_data_to_report_highlight(sheetname="Pipeline_Comparission_report", data=pipeline_row_data, columns_to_highlight=None)
+                # Enable the below line if we want to add all the uncompared pipeline
+                # data to the sheet1 and highlight in pink color
+                # self.append_data_to_report_highlight(sheetname="Pipeline_Comparission_report",
+                #                                       data=pipeline_row_data,
+                #                                       columns_to_highlight=None)
                 # self.highlight_complete_row(sheetname="MissingRows")
                 self.append_data_to_report_highlight(sheetname="InPipelineNotIn_GT",
                                                      data=pipeline_row_data,
@@ -89,25 +93,21 @@ class ExcelReport:
                     # print("pipeline row data for one length")
                     # # debug statements
                     # print(pipeline_row_data)
-                    # print(len(pipeline_row_data))
-                    # print(len(gt_row_dataset_for_key[0]))
                     self.df2.drop(gt_data_index_values, inplace=True)
                 else:
-                    differences = [index for index, (a, b) in enumerate(zip(pipeline_row_data, gt_row_dataset_for_key[0])) if str(a).lower() != str(b).lower() and (print(f"Index: {index}, a: {a}, b: {b}"), True)[1]]
+                    # Debugger statement uncomment the below line to match for lowercase
+                    # differences = [index for index, (a, b) in enumerate(zip(pipeline_row_data, gt_row_dataset_for_key[0]))
+                    #  if str(a).lower() != str(b).lower() and (print(f"Index: {index}, a: {a}, b: {b}"), True)[1]]
+                    differences = [index for index, (a, b) in enumerate(zip(pipeline_row_data, gt_row_dataset_for_key[0])) if a != b]
                     # debug statementes
                     # print(f'{key}={differences}')
-
-                    # print(len(differences))
-                    # print("single")
-                    # print(pipeline_row_data[-1])
-                    # print(len(pipeline_row_data))
-                    # print(gt_row_dataset_for_key[0][-1])
                     self.append_data_to_report_highlight(sheetname="Pipeline_Comparission_report", data=pipeline_row_data, columns_to_highlight=differences)
                     self.df2.drop(gt_data_index_values, inplace=True)
             else:
                 for data in gt_row_dataset_for_key:
                     print("Verifying for index match with groundtruth data")
-                    differences = [index for index, (a, b) in enumerate(zip(pipeline_row_data, data)) if str(a).lower() != str(b).lower() and (print(f"Index: {index + 1}, a: {a}, b: {b}"), True)[1]]
+                    # debug statement : enable below line to check weather the indesx are comparing correctly and converting each cell value to str
+                    differences = [index for index, (a, b) in enumerate(zip(pipeline_row_data, data)) if a != b]
                     data_differences.append(differences)
                 # print(f"Value Differences found for key {data_differences}")
                 if not data_differences:
@@ -120,9 +120,9 @@ class ExcelReport:
                     # debug statement
                     print(f'{key}={find_minimum_difference}')
                     # debug statements
-                    print(pipeline_row_data)
-                    print(len(pipeline_row_data[-1]))
-                    print(gt_row_dataset_for_key[0][-1])
+                    # print(pipeline_row_data)
+                    # print(len(pipeline_row_data[-1]))
+                    # print(gt_row_dataset_for_key[0][-1])
                     for index, difference in original_index.items():
                         if difference == find_minimum_difference:
                             val = index
@@ -135,5 +135,7 @@ class ExcelReport:
         for gt_data in gt_data_set:
             self.append_data_to_report_highlight(sheetname="ExtraRowsinGT", data=gt_data, columns_to_highlight=None)
 
-        print(f"Report Generated Here: {os.path.relpath(self.report_path)}")
-        print("Execution Done")
+        highlighted_report = os.path.relpath(self.report_path)
+        print(f"Report Generated Here: {highlighted_report}")
+        print("Highlights has done in the report")
+        return highlighted_report
