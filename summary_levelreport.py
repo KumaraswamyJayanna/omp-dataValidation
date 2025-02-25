@@ -260,8 +260,8 @@ class File_Report:
 
 # if you want only summary report please uncomment below lines and run this file
 # copy the highlighted report
-report ="Reports/highlighted_report_pipelineValidationData_result_temp20250222_234557.xlsx"
-print("Generating the Summary report")
-summary_report = File_Report(report)
-summary_report.generate_report()
-print("Done")
+# report ="Reports/highlighted_report_pipelineValidationData_result_temp20250222_234557.xlsx"
+# print("Generating the Summary report")
+# summary_report = File_Report(report)
+# summary_report.generate_report()
+# print("Done")
