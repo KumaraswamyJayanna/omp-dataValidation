@@ -5,9 +5,9 @@ import boto3
 import botocore
 import pandas as pd
 import psycopg2
-
 from dbconfig import (
     CATEGORY_NAME,
+    DB_TABLE,
     FLATFILE_NAME,
     QUERY,
     bucket_name,
@@ -23,7 +23,9 @@ class PostgresLogger:
         self.user = user
         self.password = password
         self.connection = self.get_postgres_connection()
-        self.test_directory = "test_directory"
+        self.test_directory = "db_ff_test_directory"
+        if not os.path.exists(self.test_directory):
+            os.makedirs(self.test_directory)
 
 
     def get_postgres_connection(self):
@@ -156,7 +158,8 @@ class PostgresLogger:
                         consolidatedfiles = file
                         print(f"Found consolidated file: {consolidatedfiles}")
                         # Download the consolidatedfile (example)
-                        s3.download_file(bucket_name, consolidatedfiles, f'extractedflatfiledata.xlsx')
+                        flatfilename = f'{self.test_directory}/{CATEGORY_NAME}_flatfiledata.xlsx'
+                        s3.download_file(bucket_name, consolidatedfiles, flatfilename)
 
                     else:
                         print("No files found in the specified bucket and prefix.")
@@ -168,7 +171,7 @@ class PostgresLogger:
             else:
                 raise
 
-        flatfilepath = os.path.realpath('extractedflatfiledata.xlsx')
+        flatfilepath = os.path.realpath(flatfilename)
         return flatfilepath
 
     def get_category_db_data(self):
@@ -176,8 +179,8 @@ class PostgresLogger:
         self.get_category_name_id()
         category_data_from_db = self.get_data_from_db_by_category(CATEGORY_NAME)
         df_database = category_data_from_db
-
-        with pd.ExcelWriter('extracteddatabasedata.xlsx', engine='openpyxl') as writer:
+        category_dbname = f'{self.test_directory}/{CATEGORY_NAME}_{DB_TABLE}_databasedata.xlsx'
+        with pd.ExcelWriter(category_dbname, engine='openpyxl') as writer:
             df_database.to_excel(writer, sheet_name="database", index=False)
-        databasepath = os.path.realpath('extracteddatabasedata.xlsx')
+        databasepath = os.path.realpath(category_dbname)
         return databasepath

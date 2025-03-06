@@ -3,6 +3,7 @@
 # Enter the Category Name
 CATEGORY_NAME = "Treasury Services"
 FLATFILE_NAME = "Treasury_&_Banking_Consolidated_flatfile.xlsx"
+DB_TABLE = "price_point"
 
 # PLease enter the QUERY
 QUERY = f"select psm.category_id,p.* from public.price_point p join public.product_service_master psm on p.product_id = psm.product_id where psm.category_id = 14;"

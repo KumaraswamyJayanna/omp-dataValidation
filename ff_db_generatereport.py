@@ -7,11 +7,10 @@ from datetime import datetime
 import numpy as np
 import openpyxl
 import pandas as pd
-from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill
-
 from dbconfig import DB_HOST, DB_NAME, DB_PASSWORD, DB_USER
 from establish_dbconnection import PostgresLogger
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
 
 # from dbconfig import flatfilepath, dbfilepath
 
@@ -40,8 +39,13 @@ class DbFlatfileReport:
         """
         self.flatfile_path = flatfile_path
         self.db_path = db_path
-        self.df_flatfile = pd.read_excel(self.flatfile_path)
-        self.df_db = pd.read_excel(self.db_path)
+        if self.flatfile_path.endswith('.xlsx'):
+            self.df_flatfile = pd.read_excel(self.flatfile_path, engine='openpyxl')
+        elif self.flatfile_path.endswith('.csv'):
+            self.df_flatfile = pd.read_csv(self.flatfile_path)
+        else:
+            print("ERROR : Check the flatfile extension")
+        self.df_db = pd.read_excel(self.db_path, engine='openpyxl')
         self.report_path = os.path.join(
             os.path.dirname(self.flatfile_path),
             f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
@@ -179,7 +183,7 @@ class DbFlatfileReport:
         Returns:
             dataframe: DataFrame with the new 'key' column.
         """
-        self.convert_datetime_columns()
+        # self.convert_datetime_columns()
         key_column_for_pricepoint = ['file_name', 'product_service_sku_name_normalized']
 
         # sort the dataframe by file_name
@@ -242,6 +246,7 @@ class DbFlatfileReport:
             key = flatfile_row_data[0]
             db_row_data = self.df_db[self.df_db['pseudo_key'] == str(key)].values.tolist()
             if not db_row_data:
+
                 logging.warning(f"Row {i} with pseudo_key {key} not found in Db DataFrame")
                 self.append_data_to_report_highlight(sheetname='DataInFlatfileNotinDb',
                                                      data=flatfile_row_data,
