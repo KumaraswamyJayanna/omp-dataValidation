@@ -23,7 +23,7 @@ class Generalchecks:
         self.report_path = REPORTPATH +f"/highlighted_report_{self.category_name + self.timestamp}.xlsx"
 
     def create_logger(self):
-        logger_report =REPORTPATH +f"report_{CATEGORY_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        logger_report = REPORTPATH +f"report_{CATEGORY_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         logging.basicConfig(
             filename=logger_report,
             level=logging.INFO,
