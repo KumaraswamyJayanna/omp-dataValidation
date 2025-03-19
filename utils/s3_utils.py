@@ -8,7 +8,6 @@ import pandas as pd
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
 aws_config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils', 'awsconfig.py'))
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 spec = importlib.util.spec_from_file_location("awsconfig", aws_config_path)
 awsconfig = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(awsconfig)
@@ -21,7 +20,6 @@ config_spec.loader.exec_module(config)
 
 ground_truth_file_name = f'{awsconfig.groundtruth_files_path}cid-{config.CATEGORY_ID}_{config.CATEGORY_NAME}_GroundTruth.xlsx'
 
-print(ground_truth_file_name)
 
 class S3utils:
 
@@ -88,10 +86,8 @@ class S3utils:
                                           Prefix=awsconfig.groundtruth_files_path)
             if 'Contents' in response:
                 files = [content['Key'] for content in response['Contents']]
-
-                print("Checking : ground_truth_file_name")
+                print(f"Checking : {ground_truth_file_name}")
                 if ground_truth_file_name in files:
-                    print("Checking : ground_truth_file_name")
                     groundtruth = f'{awsconfig.test_directory}/{config.CATEGORY_NAME}_groundtruth.xlsx'
                     print(f"Found Groundtruth File: {ground_truth_file_name}")
                     s3.download_file(awsconfig.bucketname,
@@ -108,14 +104,5 @@ class S3utils:
 
 
 # flatfilepath = "lsi_poc/data_steward/final_flat_files/"
-uploadpath = "lsi_poc/data_steward/validation_data/reports/"
-res= S3utils("Treasury&Banking")
-# test_data_file = res.download_file_from_s3object()
-# print(test_data_file)
-
-# res.upload_file_to_s3(test_data_file, uploadpath)
-if res.check_ground_truth_isexists():
-    print("Executing comparision with Groundtruth")
-    # groundtruth_file = res.download_file_from_s3object()
-else:
-    print("executing business checks")
+# uploadpath = "lsi_poc/data_steward/validation_data/reports/"
+# res= S3utils("Treasury&Banking")

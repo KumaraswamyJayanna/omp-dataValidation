@@ -1,7 +1,4 @@
 """Configuration file for the validation framework"""
-import os
-
-print(os.getcwd())
 # please copy the files to Testdata directory
 # copy the pipeline file path in output
 OUTPUTPATH = "Test_Data/Microsoft_Pipeline_Output.xlsx"
@@ -22,14 +19,13 @@ COLUMN_VALUE_TO_SORTBY = "Product_Service_SKU_Name_Original"
 # reports highlighted and summary stored in this path
 REPORTPATH = "Reports"
 
-#stored the output pipeline and Gt output for manual verification
-OUTPUTFILE = REPORTPATH+"/final_report_output.xlsx"
-
 # Intermediate data reports are stored here for debug purpose.
 VALIDATIONREPORT = "ValidationData"
-
 
 # Enter the Category Name
 CATEGORY_NAME = "Treasury&Banking"
 CATEGORY_ID = '14'
 FLATFILE_NAME = "Treasury_&_Banking_Consolidated_flatfile.xlsx"
+
+#stored the output pipeline and Gt output for manual verification
+OUTPUTFILE = f'{REPORTPATH}+"/final_report_{CATEGORY_NAME}.xlsx'

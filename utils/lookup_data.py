@@ -5,27 +5,14 @@ import sys
 
 import boto3
 import pandas as pd
-
-# from awsconfig import bucketname, directory_name, lookup_data_prefix
 from botocore.exceptions import NoCredentialsError
 
 # Add the parent directory to the sys.path to find the 'awsconfig' module
 constants_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils', 'awsconfig.py'))
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 spec = importlib.util.spec_from_file_location("awsconfig", constants_path)
-
 awsconfig = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(awsconfig)
 
-
-
-# Now you can import constants from the 'awsconfig.py' file
-# from awsconfig import bucketname, directory_name, lookup_data_prefix
-
-# from s3_utils import S3utils
-# bucketname = 'deng-us-east-1'
-# lookup_data_prefix = "lsi_poc/data_steward/validation_data/lookupdata/"
-# directory_name="lookupdata"
 
 class Lookupdata():
 
@@ -99,7 +86,4 @@ class Lookupdata():
         logging.info(f'Get the consolidated lookupdata for verification')
         lookupfilepath = self.consolidated_lookup_data()
         return lookupfilepath
-
-
-
 

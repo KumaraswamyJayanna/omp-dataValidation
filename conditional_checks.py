@@ -84,3 +84,4 @@ class ConditionalChecks:
                     if value<0:
                         self.highlight_and_add_comments(ws, row_id, col_index, "negative_value", fill_for_invalid)
         wb.save(report)
+
