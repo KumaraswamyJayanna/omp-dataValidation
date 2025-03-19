@@ -1,14 +1,15 @@
 """ Verify for business level checks"""
 
-import pandas as pd
-import openpyxl
-import os
-from openpyxl.styles import PatternFill
-from openpyxl import load_workbook
-from config import REPORTPATH
-
 import logging
+import os
 from datetime import datetime
+
+import openpyxl
+import pandas as pd
+from config import CATEGORY_NAME, REPORTPATH
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+
 # Set up logging
 
 
@@ -16,13 +17,13 @@ class Generalchecks:
 
     def __init__(self, datafile, lookupfile, category_name) -> None:
         self.df_datafile = pd.read_excel(datafile)
-        self.df_lookupfile = pd.read_excel(lookupfile)
+        self.df_lookupfile = pd.read_excel(lookupfile, sheet_name="Generic_validation")
         self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         self.category_name = category_name
         self.report_path = REPORTPATH +f"/highlighted_report_{self.category_name + self.timestamp}.xlsx"
 
     def create_logger(self):
-        logger_report =f"report_sheet_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        logger_report = REPORTPATH +f"report_{CATEGORY_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         logging.basicConfig(
             filename=logger_report,
             level=logging.INFO,
@@ -35,6 +36,7 @@ class Generalchecks:
         return mandatory_columns
 
     def check_columns_missing(self):
+        print(self.df_lookupfile.columns)
         missing_columns = [col for col in self.df_datafile.columns if col not in self.df_lookupfile['Fields'].to_list()
         ]
         extra_columns = [col for col in self.df_lookupfile['Fields'].to_list() if col not in self.df_datafile.columns
@@ -81,9 +83,8 @@ class Generalchecks:
                     if self.df_datafile[col].dtype != df_dict_type[col]:
                         dtype_mismatched_columns.append(col)
                         logging.error(f"Data Type of the column is not matching {col}")
-        except Exception as e:
-            logging.error(f"Column not found in lookup file")
-
+        except KeyError:
+            logging.error("Column not found in lookup file")
         finally:
             logging.info(f"Dtype mismatched columns {dtype_mismatched_columns}")
         return dtype_mismatched_columns
@@ -153,5 +154,5 @@ class Report(Generalchecks):
                 for index in null_rows.index:
                     cell = sheet[f'{chr(65 + self.df_report.columns.get_loc(col))}{index+2}']
                     cell.fill = fill
-                else:
-                    print(f"No Null values in {col}")
+            else:
+                print(f"No Null values in {col}")

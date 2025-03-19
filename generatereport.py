@@ -1,10 +1,10 @@
+import os
 from datetime import datetime
 
-import pandas as pd
 import openpyxl
-import os
+import pandas as pd
+from config import CATEGORY_NAME, REPORTPATH
 from openpyxl.styles import PatternFill
-from config import REPORTPATH
 
 
 class ExcelReport:
@@ -15,9 +15,9 @@ class ExcelReport:
         self.df2 = pd.read_excel(self.file2_path)  # GT output
         self.df1 = self.df1.astype(str)
         self.df2 = self.df2.astype(str)
-        self.varvalue = os.path.splitext(os.path.basename(self.file1_path))[0]
+        # self.varvalue = os.path.splitext(os.path.basename(self.file1_path))[0]
         self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        self.report_path = REPORTPATH +f"/highlighted_report_{self.varvalue + self.timestamp}.xlsx"
+        self.report_path = REPORTPATH +f"/highlightreport_{CATEGORY_NAME}_{self.timestamp}.xlsx"
         self.sheets_name = ['Pipeline_Comparission_report', 'InPipelineNotIn_GT', "ExtraRowsinGT"]
 
 

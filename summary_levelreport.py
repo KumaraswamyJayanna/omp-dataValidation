@@ -6,9 +6,8 @@ from datetime import datetime
 
 import openpyxl
 import pandas as pd
+from config import CATEGORY_NAME, REPORTPATH
 from openpyxl.styles import PatternFill
-
-from config import REPORTPATH
 
 
 class File_Report:
@@ -226,7 +225,7 @@ class File_Report:
         df_results = df_results[columns]
 
         # Writing the report to the excel file
-        output_file = REPORTPATH +"/summary_report_old.xlsx"
+        output_file = f'{REPORTPATH}/summary_report_{CATEGORY_NAME}.xlsx'
         with pd.ExcelWriter(output_file) as writer:
             df_category.to_excel(writer, sheet_name="Category Level", index=1)
             df_results.to_excel(writer, sheet_name='File Level Accuracy', index=1)

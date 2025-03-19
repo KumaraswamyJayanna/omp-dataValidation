@@ -1,8 +1,10 @@
+import os
+
 import openpyxl
 import pandas as pd
-import os
-from openpyxl.styles import PatternFill
 from config import FILE_TO_CHECK_BUSINESS_LOGIC
+from openpyxl.styles import PatternFill
+
 
 class ValidationReportGenerator:
     def __init__(self, mapping_df, lookup_df=None, supplier_category_df=None):
