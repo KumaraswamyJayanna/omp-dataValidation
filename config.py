@@ -23,9 +23,9 @@ REPORTPATH = "Reports"
 VALIDATIONREPORT = "ValidationData"
 
 # Enter the Category Name
-CATEGORY_NAME = "Treasury&Banking"
+CATEGORY_NAME = "Treasury&Services"
 CATEGORY_ID = '14'
 FLATFILE_NAME = "Treasury_&_Banking_Consolidated_flatfile.xlsx"
 
 #stored the output pipeline and Gt output for manual verification
-OUTPUTFILE = f'{REPORTPATH}+"/final_report_{CATEGORY_NAME}.xlsx'
+OUTPUTFILE = f'{REPORTPATH}/final_report_{CATEGORY_NAME}.xlsx'
