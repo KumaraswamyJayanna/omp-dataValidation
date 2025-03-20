@@ -13,6 +13,11 @@ spec = importlib.util.spec_from_file_location("awsconfig", constants_path)
 awsconfig = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(awsconfig)
 
+config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.py'))
+config_spec = importlib.util.spec_from_file_location("config", config_path)
+config = importlib.util.module_from_spec(config_spec)
+config_spec.loader.exec_module(config)
+
 
 class Lookupdata():
 
@@ -40,7 +45,7 @@ class Lookupdata():
 
     def supplier_name_lookup(self, filename='Supplier_Alias_Name.csv'):
         #  suppliar id suppliar names lookup
-        supplier_alias = pd.read_csv(f"/home/kumaraswamy.jaya/Documents/omp-dataValidation/lookupdata/{filename}")
+        supplier_alias = pd.read_csv(f"/lookupdata/{filename}")
         supplier_lookup = supplier_alias.groupby('supplier_id')['alternative_name'].apply(list).reset_index()
         return supplier_lookup
 
@@ -54,10 +59,14 @@ class Lookupdata():
 
     def category_supplier_mapping(self, filename="category_suppliers_mapping.csv"):
         cat_supplier = pd.read_csv(f"lookupdata/{filename}")
-        # cat_supplier = pd.read_csv(f"/home/kumaraswamy.jaya/Documents/omp-dataValidation/lookupdata/{filename}")
+        if 'category_id' in cat_supplier.columns:
+            cat_supplier =cat_supplier[cat_supplier['column_name'] == config.CATEGORY_ID]
         category_supplier_lookup = cat_supplier.groupby('Supplier_ID')['Supplier_Name'].apply(list).reset_index()
         return category_supplier_lookup
 
+    def supplier_normalization_lookup(self, filename="Supplier_Normalized_Original_Lkp.csv"):
+        sup_normalization = pd.read_csv(f"lookupdata/{filename}")
+        return sup_normalization
 
     def client_master_mapping(self, filename="Client_Master.csv"):
         client_master = pd.read_csv(f"lookupdata/{filename}")
@@ -65,7 +74,6 @@ class Lookupdata():
 
 
     def normalization_lookup(self, filename="normalization_all_categories_lookup.csv"):
-        noramilzation_lookupdata = pd.read_csv(f'/home/kumaraswamy.jaya/Documents/omp-dataValidation/lookupdata/{filename}')
         noramilzation_lookupdata = pd.read_csv(f'lookupdata/{filename}')
         return noramilzation_lookupdata
 
@@ -73,8 +81,10 @@ class Lookupdata():
     def consolidated_lookup_data(self, filename="lookup_file.xlsx"):
         lookupfile = f'{awsconfig.directory_name}/{filename}'
         normalization_lookup_data = self.normalization_lookup()
+        supplier_lookup_data = self.supplier_normalization_lookup
         client_master_data = self.client_master_mapping()
-        consolidated_df = pd.concat([normalization_lookup_data, client_master_data], axis=1)
+        lookups = [normalization_lookup_data, supplier_lookup_data, client_master_data]
+        consolidated_df = pd.concat(lookups, axis=1, ignore_index=True)
 
         with pd.ExcelWriter(lookupfile, engine='openpyxl') as writer:
             consolidated_df.to_excel(writer, index=False)

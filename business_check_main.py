@@ -9,6 +9,7 @@ from utils.lookup_data import Lookupdata
 from utils.s3_utils import S3utils
 from validate_general_checks import Report
 
+# get the pipeline output file as testfile
 testfile ='Test_Data/tbs_flat_file.xlsx'
 
 
@@ -25,6 +26,7 @@ class Runvalidationscript(S3utils, Lookupdata):
         # conditional_lookup_file = input("Enter the conditional lookup file : ")
         genearte_report =  Report(pipeline_data_file, lookup_file, "TreasuryBanking")
         conditional_checks = ConditionalChecks(pipeline_data_file, conditional_lookup_file)
+        print("Converting it to lower case")
         conditional_checks.columns_to_lowercase()
         genearte_report.create_logger()
         logger.info(f'Create a logger report')
@@ -69,4 +71,4 @@ class Runvalidationscript(S3utils, Lookupdata):
             print("verified the business level logics againest datafile")
 
 execute = Runvalidationscript()
-execute.run()
+execute.business_checks()

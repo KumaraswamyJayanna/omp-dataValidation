@@ -14,10 +14,10 @@ class ConditionalChecks:
         self.df_conditional_lookup = pd.read_excel(lookupfile)
 
     def columns_to_lowercase(self):
-        self.df_datafile.columns.str.lower()  # Convert to lowercase
-        self.df_conditional_lookup.columns.str.lower()
-        self.df_datafile.columns = self.df_datafile.columns.str.replace(r'[^a-z0-9]', '_', regex=True)
-        self.df_conditional_lookup.columns = self.df_conditional_lookup.columns.str.replace(r'[^a-z0-9]', '_', regex=True)
+        self.df_datafile.columns = self.df_datafile.columns.str.lower()
+        self.df_conditional_lookup.columns = self.df_conditional_lookup.columns.str.lower()
+        self.df_datafile.columns = self.df_datafile.columns.str.replace(r'[^a-zA-Z0-9]', '', regex=True)
+        self.df_conditional_lookup.columns = self.df_conditional_lookup.columns.str.replace(r'[^a-zA-Z0-9]', '', regex=True)
 
     def highlight_and_add_comments(self, ws, row, col, message, color_fill):
         cell = ws.cell(row=row, column=col)
@@ -36,11 +36,12 @@ class ConditionalChecks:
         # Define the color fill for highlighting invalid cells and nulls
         invalid_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
         null_fill = PatternFill(start_color="FFCCCB", end_color="FFCCCB", fill_type="solid")
-
         # Validate columns from data file against lookup file
         for i, column in enumerate(self.df_datafile.columns, 1):
+
             # Modify here if we need to check only for mandatory columns
             if column in self.df_conditional_lookup.columns:
+                # print(f'Conditionaal lookup columns :{column}')
                 lookup_values = self.df_conditional_lookup[column].dropna().values  # Get non-null values from lookup column
                 for j, value in enumerate(self.df_datafile[column], 2):  # Data rows start from 2 (1 is header)
                     updated_value=''
@@ -72,11 +73,12 @@ class ConditionalChecks:
         wb.save(report)
 
     def verify_for_non_negative(self, report):
-        columns = ["Quantity", "Total_Price", "totalprice"]
+        columns = ["quantity", "Total_Price", "totalprice"]
         wb = load_workbook(report)
         ws = wb.active
         fill_for_invalid = PatternFill(start_color="FFCCCB", end_color="FFCCCB", fill_type="solid")
         for column in columns:
+            print(f"Verifying for non negative columns {column}")
             if column in self.df_datafile.columns:
                 col_index = self.df_datafile.columns.get_loc(column)+1
 
