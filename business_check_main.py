@@ -1,5 +1,4 @@
 import logging as logger
-import subprocess
 
 import pandas as pd
 from conditional_checks import ConditionalChecks
@@ -24,8 +23,9 @@ class Runvalidationscript(S3utils, Lookupdata):
         print("Executing Business level checks")
         conditional_lookup_file = "lookupdata/lookup_file.xlsx"
         # conditional_lookup_file = input("Enter the conditional lookup file : ")
-        genearte_report =  Report(pipeline_data_file, lookup_file, "TreasuryBanking")
+        genearte_report =  Report(pipeline_data_file, lookup_file, "Treasury&Banking")
         conditional_checks = ConditionalChecks(pipeline_data_file, conditional_lookup_file)
+
         conditional_checks.columns_to_lowercase()
         genearte_report.create_logger()
         logger.info(f'Create a logger report')
@@ -36,7 +36,7 @@ class Runvalidationscript(S3utils, Lookupdata):
         logger.info(f'Generate a report file')
         report_sheet = genearte_report.create_report_sheet()
         logger.info(f'Verify the fields which are all null values')
-        all_null_fields = genearte_report.verify_for_all_null_values()
+        # all_null_fields = genearte_report.verify_for_all_null_values()
         logger.info(f"Verify the mandatory column's/Fields are null")
         mandatory_null_fields = genearte_report.mandatory_columns_null_values(mandatory_columns)
         # Highlight the cells in light blue
@@ -48,10 +48,14 @@ class Runvalidationscript(S3utils, Lookupdata):
         logger.info(f'Verify the conditional checks')
         logger.info(f"Verify the datasheet data contains the expected values")
         conditional_checks.verify_original_name_data(report_sheet)
-        logger.info(f'Verifying for the negative values')
-        conditional_checks.verify_for_non_negative(report_sheet)
-        print(f"Reports Generated here {report_sheet}")
-        logger.info("Execution completed")
+        logger.info(f"Verifying supplier id and supplier_name_original are mapped correctly")
+        conditional_checks.supplier_name_lookup(report_sheet)
+        logger.info(f"Verifying client_id and client_name_original are mapped correctly")
+        conditional_checks.client_alias_name_verify(report_sheet)
+        # logger.info(f'Verifying for the negative values')
+        # conditional_checks.verify_for_non_negative(report_sheet)
+        # print(f"Reports Generated here {report_sheet}")
+        # logger.info("Execution completed")
 
 
     def run(self):
@@ -70,4 +74,4 @@ class Runvalidationscript(S3utils, Lookupdata):
             print("verified the business level logics againest datafile")
 
 execute = Runvalidationscript()
-execute.run()
+execute.business_checks()

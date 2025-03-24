@@ -86,6 +86,7 @@ class S3utils:
                                           Prefix=awsconfig.groundtruth_files_path)
             if 'Contents' in response:
                 files = [content['Key'] for content in response['Contents']]
+                print(files)
                 print(f"Checking : {ground_truth_file_name}")
                 if ground_truth_file_name in files:
                     groundtruth = f'{awsconfig.test_directory}/{config.CATEGORY_NAME}_groundtruth.xlsx'

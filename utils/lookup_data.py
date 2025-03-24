@@ -83,8 +83,8 @@ class Lookupdata():
         normalization_lookup_data = self.normalization_lookup()
         supplier_lookup_data = self.supplier_normalization_lookup
         client_master_data = self.client_master_mapping()
-        lookups = [normalization_lookup_data, supplier_lookup_data, client_master_data]
-        consolidated_df = pd.concat(lookups, axis=1, ignore_index=True)
+        # lookups = [normalization_lookup_data, supplier_lookup_data, client_master_data]
+        consolidated_df = pd.concat([client_master_data, normalization_lookup_data], axis=1)
 
         with pd.ExcelWriter(lookupfile, engine='openpyxl') as writer:
             consolidated_df.to_excel(writer, index=False)
