@@ -27,6 +27,10 @@ class ConditionalChecks:
         cell.comment = openpyxl.comments.Comment(message, "Validation Script")
 
     def verify_original_name_data(self, report):
+        """
+        This lookup file consists of the columns name need to be verified and the respective values
+
+        """
         # verifying in the report listed columns expected values are matching or not
         wb = load_workbook(report)
         ws = wb.active
@@ -102,7 +106,6 @@ class ConditionalChecks:
         supplier_lookup = supplier_alias.groupby('supplier_id')['alternative_name'].apply(list).reset_index()
         res = dict(zip(supplier_lookup['supplier_id'], supplier_lookup['alternative_name']))
         print("Verifying the suppliers mapping values")
-        print(self.df_datafile.columns)
         if id and id_name in self.df_datafile.columns:
             print("Columns found for suppliers")
             for idx, (value, name) in enumerate(zip(self.df_datafile[id], self.df_datafile[id_name]), start=2):
@@ -110,9 +113,9 @@ class ConditionalChecks:
                     logging.info("verified supplierid and suppliername")
                 else:
                     logging.info("supplier id and supplier_name not matching")
-                    id_column_value = int(self.df_datafile.columns.get_loc(id))+1
+                    # id_column_value = int(self.df_datafile.columns.get_loc(id))+1
                     id_name_column_value = int(self.df_datafile.columns.get_loc(id_name))+1
-                    ws.cell(row=idx, column=id_column_value).fill = mismatch_fill  # Highlight 'id' column
+                    # ws.cell(row=idx, column=id_column_value).fill = mismatch_fill  # Highlight 'id' column
                     ws.cell(row=idx, column=id_name_column_value).fill = mismatch_fill
 
         wb.save(report)
@@ -124,7 +127,7 @@ class ConditionalChecks:
         self.df_datafile = self.df_datafile.applymap(lambda x: x.lower() if isinstance(x, str) else x)
         self.df_conditional_lookup = self.df_conditional_lookup.applymap(lambda x: x.lower() if isinstance(x, str) else x)
         mismatch_fill = PatternFill(start_color="FF9999", end_color="FF9999", fill_type="solid")
-        #  suppliar id suppliar names lookup
+        #  client id client names lookup
         client_alias = pd.read_csv(f"lookupdata/{filename}")
         client_alias_lookup = client_alias.groupby('client_id')['alternative_name'].apply(list).reset_index()
 
@@ -136,11 +139,23 @@ class ConditionalChecks:
                     logging.info("verified supplierid and suppliername")
                 else:
                     logging.info("supplier id and supplier_name not matching")
-                    id_column_value = int(self.df_datafile.columns.get_loc(id))+1
+                    # id_column_value = int(self.df_datafile.columns.get_loc(id))+1
                     id_name_column_value = int(self.df_datafile.columns.get_loc(id_name))+1
-                    ws.cell(row=idx, column=id_column_value).fill = mismatch_fill  # Highlight 'id' column
+                    # ws.cell(row=idx, column=id_column_value).fill = mismatch_fill  # Highlight 'id' column
                     ws.cell(row=idx, column=id_name_column_value).fill = mismatch_fill
 
         wb.save(report)
 
+
+    def verify_price_date(self, report):
+        wb = load_workbook(report)
+        ws = wb.active
+        # Price_Date>=2017-01-01
+        if 'price_date' in self.df_datafile.columns:
+            price_date_fill = PatternFill(start_color="FF9999", end_color="FF9999", fill_type="solid")
+            price_date_column_index = self.df_datafile.columns.get_loc('price_date') + 1
+            for idx, price_date in enumerate(self.df_datafile['price_date'], start=2):
+                if pd.to_datetime(price_date) < pd.to_datetime('2017-01-01'):
+                    self.highlight_and_add_comments(ws, idx, price_date_column_index, "Price date is before 2017-01-01", price_date_fill)
+        wb.save(report)
 

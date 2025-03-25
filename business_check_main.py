@@ -9,7 +9,7 @@ from utils.s3_utils import S3utils
 from validate_general_checks import Report
 
 # get the pipeline output file as testfile
-testfile ='Test_Data/tbs_flat_file.xlsx'
+testfile ='Test_Data/cid-85_wastemanagement_pipeline.xlsx'
 
 
 class Runvalidationscript(S3utils, Lookupdata):
@@ -23,7 +23,7 @@ class Runvalidationscript(S3utils, Lookupdata):
         print("Executing Business level checks")
         conditional_lookup_file = "lookupdata/lookup_file.xlsx"
         # conditional_lookup_file = input("Enter the conditional lookup file : ")
-        genearte_report =  Report(pipeline_data_file, lookup_file, "Treasury&Banking")
+        genearte_report =  Report(pipeline_data_file, lookup_file, CATEGORY_NAME)
         conditional_checks = ConditionalChecks(pipeline_data_file, conditional_lookup_file)
 
         conditional_checks.columns_to_lowercase()
@@ -52,10 +52,12 @@ class Runvalidationscript(S3utils, Lookupdata):
         conditional_checks.supplier_name_lookup(report_sheet)
         logger.info(f"Verifying client_id and client_name_original are mapped correctly")
         conditional_checks.client_alias_name_verify(report_sheet)
-        # logger.info(f'Verifying for the negative values')
-        # conditional_checks.verify_for_non_negative(report_sheet)
-        # print(f"Reports Generated here {report_sheet}")
-        # logger.info("Execution completed")
+        logger.info(f" Verifying for the price dates")
+        conditional_checks.verify_price_date(report_sheet)
+        logger.info(f'Verifying for the negative values')
+        conditional_checks.verify_for_non_negative(report_sheet)
+        print(f"Reports Generated here {report_sheet}")
+        logger.info("Execution completed")
 
 
     def run(self):
@@ -74,4 +76,4 @@ class Runvalidationscript(S3utils, Lookupdata):
             print("verified the business level logics againest datafile")
 
 execute = Runvalidationscript()
-execute.business_checks()
+execute.run()
