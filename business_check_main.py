@@ -52,8 +52,10 @@ class Runvalidationscript(S3utils, Lookupdata):
         conditional_checks.supplier_name_lookup(report_sheet)
         logger.info(f"Verifying client_id and client_name_original are mapped correctly")
         conditional_checks.client_alias_name_verify(report_sheet)
-        logger.info(f" Verifying for the price dates")
+        logger.info(f'Verifying for the price dates')
         conditional_checks.verify_price_date(report_sheet)
+        logger.info(f'Verify for the payment columns')
+        conditional_checks.verify_payment_term(report_sheet)
         logger.info(f'Verifying for the negative values')
         conditional_checks.verify_for_non_negative(report_sheet)
         print(f"Reports Generated here {report_sheet}")
@@ -76,4 +78,4 @@ class Runvalidationscript(S3utils, Lookupdata):
             print("verified the business level logics againest datafile")
 
 execute = Runvalidationscript()
-execute.run()
+execute.business_checks()

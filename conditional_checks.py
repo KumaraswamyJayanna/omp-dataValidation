@@ -159,3 +159,27 @@ class ConditionalChecks:
                     self.highlight_and_add_comments(ws, idx, price_date_column_index, "Price date is before 2017-01-01", price_date_fill)
         wb.save(report)
 
+    def verify_payment_term(self, report):
+        wb = load_workbook(report)
+        ws = wb.active
+        payment_term_fill = PatternFill(start_color="FF9999", end_color="FF9999", fill_type="solid")
+        if 'payment_term' in self.df_datafile.columns:
+            payment_term_column_index = self.df_datafile.columns.get_loc('payment_term') + 1
+            for idx, payment_term in enumerate(self.df_datafile['payment_term'], start=2):
+                if not pd.isna(payment_term) and not payment_term.lower().startswith('net') or not payment_term[3:].isdigit():
+                    self.highlight_and_add_comments(ws, idx, payment_term_column_index, "Invalid payment term", payment_term_fill)
+        wb.save(report)
+
+    def verify_level5_field(self, report):
+        wb = load_workbook(report)
+        ws = wb.active
+        level5_fill = PatternFill(start_color="FF9999", end_color="FF9999", fill_type="solid")
+        level5_columns = [col for col in self.df_conditional_lookup.columns if col.lower() in ["level 5", "level 5 category"]]
+
+        if 'level5' in self.df_datafile.columns and level5_columns:
+            level5_column_index = self.df_datafile.columns.get_loc('level5') + 1
+            lookup_values = pd.concat([self.df_conditional_lookup[col].dropna() for col in level5_columns]).unique()
+            for idx, level5_value in enumerate(self.df_datafile['level5'], start=2):
+                if level5_value.lower() not in lookup_values:
+                    self.highlight_and_add_comments(ws, idx, level5_column_index, "Level 5 value not found in lookup", level5_fill)
+        wb.save(report)
