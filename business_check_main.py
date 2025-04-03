@@ -77,5 +77,7 @@ class Runvalidationscript(S3utils, Lookupdata):
             self.business_checks()
             print("verified the business level logics againest datafile")
 
-execute = Runvalidationscript()
-execute.business_checks()
+# execute = Runvalidationscript()
+# execute.run()
+# # if we need to run business checks
+# # execute.business_checks()
