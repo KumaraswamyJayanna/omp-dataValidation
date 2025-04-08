@@ -1,10 +1,10 @@
-from config import OUTPUTFILE, KEYS, VALIDATIONREPORT, COLUMN_VALUE_TO_SORTBY
+import os
+import re
+from datetime import datetime
 
 import pandas as pd
+from config import COLUMN_VALUE_TO_SORTBY, KEYS, OUTPUTFILE, VALIDATIONREPORT
 from openpyxl import load_workbook
-from datetime import datetime
-import re
-import os
 
 
 class ExcelCompare:
@@ -59,8 +59,11 @@ class DataCleaning(ExcelCompare):
 
     @staticmethod
     def convertdatetime(df, columnname):
-        df[columnname] = pd.to_datetime(df[columnname])
-        df[columnname] = df[columnname].dt.strftime('%Y-%m-%d')
+        try:
+            df[columnname] = pd.to_datetime(df[columnname])
+            df[columnname] = df[columnname].dt.strftime('%Y-%m-%d')
+        except Exception as e:
+            print("failed to convert Date time")
 
     def remove_special_characters(self):
         def clean_string(value):

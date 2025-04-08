@@ -25,3 +25,4 @@ class Runcomparision:
 
 
 runcomparision = Runcomparision()
+# runcomparision.pipeline_vs_gtcomparision()
