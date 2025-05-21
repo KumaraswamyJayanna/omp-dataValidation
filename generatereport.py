@@ -97,7 +97,9 @@ class ExcelReport:
                     # print("pipeline row data for one length")
                     # # debug statements
                     # print(pipeline_row_data)
+                    self.append_data_to_report_highlight(sheetname="Pipeline_Comparission_report", data=pipeline_row_data, columns_to_highlight=None)
                     self.df2.drop(gt_data_index_values, inplace=True)
+                    
                 else:
                     # Debugger statement uncomment the below line to match for lowercase
                     # differences = [index for index, (a, b) in enumerate(zip(pipeline_row_data, gt_row_dataset_for_key[0]))
